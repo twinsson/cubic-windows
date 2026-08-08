@@ -127,6 +127,26 @@ pub fn find_existing_component(paths: &AppPaths, component: &str) -> Option<Path
     candidates.into_iter().find(|p| p.is_file())
 }
 
+/// Resolve a game version’s Java requirement and install Mojang’s runtime if needed.
+pub async fn ensure_java_for_game_version(
+    app: &AppHandle,
+    paths: &AppPaths,
+    version_id: &str,
+    cancel: &CancellationToken,
+) -> AppResult<JavaRuntime> {
+    let version = crate::metadata::client::ensure_version_json(paths, version_id).await?;
+    let required = version
+        .java_version
+        .as_ref()
+        .map(|j| j.major_version)
+        .unwrap_or(8);
+    let component = version
+        .java_version
+        .as_ref()
+        .and_then(|j| j.component.as_deref());
+    ensure_java(app, paths, required, component, None, cancel).await
+}
+
 /// Prefer override → managed/known component JRE → system JRE → download Mojang JRE.
 pub async fn ensure_java(
     app: &AppHandle,

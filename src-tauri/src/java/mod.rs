@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use crate::error::{AppError, AppResult};
 use crate::paths::AppPaths;
 
-pub use runtime::ensure_java;
+pub use runtime::{ensure_java, ensure_java_for_game_version};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

@@ -145,6 +145,9 @@ pub async fn install_instance_full(
     instance: &mut Instance,
     cancel: CancellationToken,
 ) -> AppResult<()> {
+    // Install the Java runtime this game version needs before (or while) fetching game files.
+    crate::java::ensure_java_for_game_version(app, paths, &instance.version_id, &cancel).await?;
+
     // Always install the vanilla game version first.
     install_vanilla(app, paths, &instance.version_id, cancel.clone()).await?;
 

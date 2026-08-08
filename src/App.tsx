@@ -196,6 +196,7 @@ export default function App() {
         });
         const u2 = await listen("install-complete", () => {
           setBusy(null);
+          setProgress(null);
         });
         const u3 = await listen("game-exited", () => {
           setBusy(null);
@@ -379,6 +380,7 @@ export default function App() {
   async function onCreate() {
     setError(null);
     setBusy("Creating instance…");
+    setProgress(null);
     try {
       const created = await invoke<Instance>("create_instance", {
         request: {
@@ -391,10 +393,13 @@ export default function App() {
       setSelectedId(created.id);
       setNewName(newVersion);
       setCreateOpen(false);
+      setBusy("Installing…");
+      await invoke("install_instance", { id: created.id });
+      // busy / progress cleared by install-complete
     } catch (err) {
       setError(errMessage(err));
-    } finally {
       setBusy(null);
+      setProgress(null);
     }
   }
 
