@@ -111,7 +111,10 @@ pub async fn launch_vanilla(
             "${library_directory}".to_string(),
             paths.libraries_dir().display().to_string(),
         ),
-        ("${classpath_separator}".to_string(), ":".to_string()),
+        (
+            "${classpath_separator}".to_string(),
+            AppPaths::classpath_separator().to_string(),
+        ),
     ]);
 
     apply_substitutions(&mut jvm_args, &substitutions);
@@ -209,7 +212,7 @@ fn build_classpath(
         .iter()
         .map(|p| p.display().to_string())
         .collect::<Vec<_>>()
-        .join(":");
+        .join(AppPaths::classpath_separator());
     Ok(joined)
 }
 
@@ -245,36 +248,50 @@ async fn extract_natives(
     Ok(())
 }
 
+fn native_os_name() -> &'static str {
+    if cfg!(windows) {
+        "windows"
+    } else if cfg!(target_os = "macos") {
+        "osx"
+    } else {
+        "linux"
+    }
+}
+
 fn native_key(lib: &Library) -> Option<String> {
-    lib.natives.as_ref()?.get("linux").cloned()
+    lib.natives.as_ref()?.get(native_os_name()).cloned()
 }
 
 async fn extract_jar_natives(jar: &Path, dest: &Path) -> AppResult<()> {
-    // Use system `jar` or `unzip` to avoid adding zip crate complexity for META filtering.
-    // Prefer unzip which is commonly available on Linux.
-    let status = Command::new("unzip")
-        .arg("-o")
-        .arg("-q")
-        .arg(jar)
-        .arg("-d")
-        .arg(dest)
-        .status();
+    let jar = jar.to_path_buf();
+    let dest = dest.to_path_buf();
+    tokio::task::spawn_blocking(move || extract_jar_natives_sync(&jar, &dest))
+        .await
+        .map_err(|err| AppError::msg(format!("Native extract task failed: {err}")))?
+}
 
-    match status {
-        Ok(s) if s.success() => {
-            // Remove META-INF from natives dump
-            let meta = dest.join("META-INF");
-            if meta.exists() {
-                let _ = tokio::fs::remove_dir_all(meta).await;
-            }
-            Ok(())
+fn extract_jar_natives_sync(jar: &Path, dest: &Path) -> AppResult<()> {
+    let file = std::fs::File::open(jar)?;
+    let mut archive = zip::ZipArchive::new(file)
+        .map_err(|err| AppError::msg(format!("Failed to open natives jar {}: {err}", jar.display())))?;
+    for i in 0..archive.len() {
+        let mut entry = archive
+            .by_index(i)
+            .map_err(|err| AppError::msg(format!("Bad zip entry in {}: {err}", jar.display())))?;
+        let name = entry.name().replace('\\', "/");
+        if name.starts_with("META-INF/") || name.contains("..") {
+            continue;
         }
-        Ok(s) => Err(AppError::msg(format!(
-            "unzip failed extracting natives from {}: exit {s}",
-            jar.display()
-        ))),
-        Err(err) => Err(AppError::msg(format!(
-            "unzip is required to extract natives ({err})"
-        ))),
+        let out_path = dest.join(&name);
+        if entry.is_dir() || name.ends_with('/') {
+            std::fs::create_dir_all(&out_path)?;
+            continue;
+        }
+        if let Some(parent) = out_path.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+        let mut outfile = std::fs::File::create(&out_path)?;
+        std::io::copy(&mut entry, &mut outfile)?;
     }
+    Ok(())
 }

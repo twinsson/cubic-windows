@@ -568,7 +568,7 @@ export default function App() {
                 <h1 className="brand">
                   Cub<span>ic</span>
                 </h1>
-                <p className="tagline">Linux launcher</p>
+                <p className="tagline">Windows launcher</p>
               </div>
             </div>
             <button type="button" className="create-open" onClick={openCreate} disabled={!!busy}>

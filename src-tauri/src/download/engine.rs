@@ -198,7 +198,14 @@ fn plan_libraries(
 }
 
 fn native_classifier(lib: &Library) -> Option<String> {
-    lib.natives.as_ref()?.get("linux").cloned()
+    let os = if cfg!(windows) {
+        "windows"
+    } else if cfg!(target_os = "macos") {
+        "osx"
+    } else {
+        "linux"
+    };
+    lib.natives.as_ref()?.get(os).cloned()
 }
 
 fn push_artifact(

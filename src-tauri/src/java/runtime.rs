@@ -69,11 +69,46 @@ pub fn component_for_major(major: u32) -> &'static str {
 }
 
 pub fn managed_java_bin(paths: &AppPaths, component: &str) -> PathBuf {
-    paths.runtime_dir().join(component).join("bin/java")
+    paths
+        .runtime_dir()
+        .join(component)
+        .join("bin")
+        .join(AppPaths::java_bin_name())
 }
 
 pub fn find_existing_component(paths: &AppPaths, component: &str) -> Option<PathBuf> {
     let mut candidates = vec![managed_java_bin(paths, component)];
+    if let Ok(appdata) = std::env::var("APPDATA") {
+        candidates.push(
+            PathBuf::from(&appdata)
+                .join("PrismLauncher")
+                .join("java")
+                .join(component)
+                .join("bin")
+                .join(AppPaths::java_bin_name()),
+        );
+        candidates.push(
+            PathBuf::from(&appdata)
+                .join(".minecraft")
+                .join("runtime")
+                .join(component)
+                .join("windows-x64")
+                .join(component)
+                .join("bin")
+                .join(AppPaths::java_bin_name()),
+        );
+    }
+    if let Ok(local) = std::env::var("LOCALAPPDATA") {
+        candidates.push(
+            PathBuf::from(local)
+                .join("PrismLauncher")
+                .join("java")
+                .join(component)
+                .join("bin")
+                .join(AppPaths::java_bin_name()),
+        );
+    }
+    #[cfg(unix)]
     if let Some(home) = std::env::var_os("HOME") {
         let home = PathBuf::from(home);
         candidates.push(

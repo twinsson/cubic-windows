@@ -157,7 +157,14 @@ impl Rule {
     pub fn applies(&self, features: &HashMap<String, bool>) -> bool {
         if let Some(os) = &self.os {
             if let Some(name) = &os.name {
-                if name != "linux" {
+                let current = if cfg!(windows) {
+                    "windows"
+                } else if cfg!(target_os = "macos") {
+                    "osx"
+                } else {
+                    "linux"
+                };
+                if name != current {
                     return false;
                 }
             }

@@ -4,5 +4,5 @@
 use std::process::ExitCode;
 
 fn main() -> ExitCode {
-    minecraft_launcher_lib::run()
+    cubic_lib::run()
 }

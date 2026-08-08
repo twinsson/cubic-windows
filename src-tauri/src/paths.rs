@@ -6,7 +6,7 @@ use crate::error::{AppError, AppResult};
 
 const QUALIFIER: &str = "com";
 const ORGANIZATION: &str = "twinsson";
-const APPLICATION: &str = "minecraft-launcher";
+const APPLICATION: &str = "Cubic";
 
 #[derive(Debug, Clone)]
 pub struct AppPaths {
@@ -18,7 +18,7 @@ pub struct AppPaths {
 impl AppPaths {
     pub fn resolve() -> AppResult<Self> {
         let dirs = ProjectDirs::from(QUALIFIER, ORGANIZATION, APPLICATION).ok_or_else(|| {
-            AppError::msg("Could not resolve XDG project directories for this platform")
+            AppError::msg("Could not resolve application directories for this platform")
         })?;
 
         let paths = Self {
@@ -98,5 +98,13 @@ impl AppPaths {
 
     pub fn download_tmp_dir(&self) -> PathBuf {
         self.cache_dir.join("downloads")
+    }
+
+    pub fn classpath_separator() -> &'static str {
+        if cfg!(windows) { ";" } else { ":" }
+    }
+
+    pub fn java_bin_name() -> &'static str {
+        if cfg!(windows) { "java.exe" } else { "java" }
     }
 }
