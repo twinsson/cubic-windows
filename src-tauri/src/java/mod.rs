@@ -178,11 +178,12 @@ fn scan_system_jvms() -> Vec<PathBuf> {
     {
         for key in ["ProgramFiles", "ProgramFiles(x86)", "LOCALAPPDATA"] {
             if let Ok(base) = std::env::var(key) {
-                roots.push(PathBuf::from(base).join("Java"));
-                roots.push(PathBuf::from(base).join("Eclipse Adoptium"));
-                roots.push(PathBuf::from(base).join("Microsoft"));
-                roots.push(PathBuf::from(base).join("Amazon Corretto"));
-                roots.push(PathBuf::from(base).join("Zulu"));
+                let base = PathBuf::from(base);
+                roots.push(base.join("Java"));
+                roots.push(base.join("Eclipse Adoptium"));
+                roots.push(base.join("Microsoft"));
+                roots.push(base.join("Amazon Corretto"));
+                roots.push(base.join("Zulu"));
             }
         }
     }
