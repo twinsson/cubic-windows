@@ -43,9 +43,11 @@ const BEHIND_EPS = 0.04;
 const VIEW_H = 9.6;
 const ISLAND_SCALE = 0.36;
 /** Internal GL resolution cap — fill-rate is the fullscreen killer. */
-const MAX_GL_EDGE = 720;
+const MAX_GL_EDGE = 640;
+/** Lower while dragging — WebView2 (Windows) stalls hard on full-res + DOM. */
+const DRAG_GL_EDGE = 420;
 const IDLE_DT = 1 / 60;
-const DRAG_DT = 1 / 120;
+const DRAG_DT = 1 / 90;
 const COAST_EPS = 0.015;
 
 type FaceKind = "top" | "side" | "bottom";
@@ -454,12 +456,13 @@ export default function SkyIsland({ instances, selectedId, onSelect }: Props) {
     island.rotation.y = yawRef.current;
     scene.add(island);
 
+    let glEdge = MAX_GL_EDGE;
     const resize = () => {
       const w = host.clientWidth | 0;
       const h = host.clientHeight | 0;
       if (w < 2 || h < 2) return;
       sizeRef.current = { w, h };
-      const glScale = Math.min(1, MAX_GL_EDGE / Math.max(w, h));
+      const glScale = Math.min(1, glEdge / Math.max(w, h));
       renderer.setSize(Math.max(2, (w * glScale) | 0), Math.max(2, (h * glScale) | 0), false);
       const viewW = VIEW_H * (w / h);
       camera.left = -viewW * 0.5;
@@ -477,6 +480,7 @@ export default function SkyIsland({ instances, selectedId, onSelect }: Props) {
     let last = performance.now();
     let tickAcc = 0;
     let podFrame = 0;
+    let wasDragging = false;
 
     const syncPods = (spin: number, yaw: number) => {
       const pairs = pairsRef.current;
@@ -525,6 +529,12 @@ export default function SkyIsland({ instances, selectedId, onSelect }: Props) {
       tickAcc += rawDt;
 
       const dragging = dragRef.current != null;
+      if (dragging !== wasDragging) {
+        wasDragging = dragging;
+        glEdge = dragging ? DRAG_GL_EDGE : MAX_GL_EDGE;
+        resize();
+      }
+
       const velNow = yawVelRef.current;
       const coasting = velNow > COAST_EPS || velNow < -COAST_EPS;
       const budget = dragging || coasting ? DRAG_DT : IDLE_DT;
@@ -551,8 +561,15 @@ export default function SkyIsland({ instances, selectedId, onSelect }: Props) {
         vel = yawVelRef.current;
       }
 
+      // Freeze HTML pods while dragging — DOM transforms stall WebView2.
       podFrame++;
-      if (!dragging || (podFrame & 1) === 0) syncPods(spin, yaw);
+      if (!dragging) {
+        if (coasting) {
+          if ((podFrame & 1) === 0) syncPods(spin, yaw);
+        } else {
+          syncPods(spin, yaw);
+        }
+      }
 
       const moving = dragging || dirtyRef.current || vel > COAST_EPS || vel < -COAST_EPS;
       if (moving) {
