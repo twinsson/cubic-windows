@@ -1,0 +1,33 @@
+---
+description: Flat, restrained UI — no AI SaaS aesthetic
+globs: src/**/*.{tsx,css}, index.html
+alwaysApply: false
+---
+
+# UI design
+
+Avoid the stereotypical AI-generated SaaS look. Prefer flat, restrained, information-dense interfaces.
+
+## Do not use
+
+- Gradients (unless explicitly requested)
+- Glow / colored box-shadows
+- Glassmorphism / backdrop-blur
+- Excessive rounded cards or pill shapes
+- Gradients behind text, decorative blobs
+- Huge centered hero text
+- Card grids and excessive whitespace
+
+## Do use
+
+- Neutral backgrounds; limited palette; **one** accent
+- Subtle 1px borders instead of shadows
+- Spacing + typography for hierarchy (size/weight, not effects)
+- `border-radius: 4–8px` by default
+- Real buttons (not pills); left-aligned layouts
+- Dividers, whitespace, and alignment before wrapping in containers
+- Design around content; group related controls spatially
+
+## Layout mindset
+
+Decide hierarchy for this product first. Do not default to landing-page / dashboard-card patterns.

@@ -1,0 +1,165 @@
+.sky-scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  contain: layout style;
+  background: #7eb6e8;
+}
+
+.sky-fallback {
+  cursor: default;
+  pointer-events: none;
+}
+
+[data-theme="deepslate"] .sky-scene {
+  background: #1a2834;
+}
+
+[data-theme="nether"] .sky-scene {
+  background: #2a1010;
+}
+
+[data-theme="copper"] .sky-scene {
+  background: #5a8aaa;
+}
+
+[data-theme="pale"] .sky-scene {
+  background: #9ec8ef;
+}
+
+.sky-scene.dragging {
+  cursor: grabbing;
+}
+
+.sky-scene.dragging .orbit-pod {
+  will-change: transform;
+  pointer-events: none;
+}
+
+.sky-scene.dragging .sky-haze {
+  visibility: hidden;
+}
+
+.sky-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 2;
+  pointer-events: none;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.sky-haze {
+  display: none;
+}
+
+.orbit-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.orbit-back {
+  z-index: 1;
+}
+
+.orbit-front {
+  z-index: 4;
+}
+
+.orbit-pod {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: auto;
+  display: grid;
+  justify-items: start;
+  gap: 0.25rem;
+  padding: 0.45rem 0.55rem;
+  width: 7rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  contain: layout style;
+}
+
+.orbit-pod[hidden] {
+  display: none !important;
+}
+
+.orbit-pod:hover {
+  background: var(--panel-raised);
+  border-color: var(--line-strong);
+}
+
+.orbit-pod.selected {
+  border-color: var(--grass);
+  background: var(--accent-soft);
+}
+
+.orbit-pod.hint {
+  width: 12rem;
+  left: 50%;
+  top: 72%;
+  pointer-events: none;
+  cursor: default;
+  transform: translate(-50%, -50%);
+  background: var(--panel);
+  will-change: auto;
+}
+
+.orbit-pod.hint p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--ink-dim);
+}
+
+.pod-cube {
+  width: 16px;
+  height: 16px;
+  background: var(--grass);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+}
+
+.pod-label {
+  display: grid;
+  gap: 0.05rem;
+  min-width: 0;
+  width: 100%;
+}
+
+.pod-label strong {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pod-label span {
+  font-size: 0.68rem;
+  color: var(--ink-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 700px) {
+  .orbit-pod {
+    width: 5.8rem;
+    padding: 0.35rem 0.45rem;
+  }
+}
